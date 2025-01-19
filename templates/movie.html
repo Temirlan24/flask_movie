@@ -2,9 +2,138 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>$Title$</title>
+  <title>Кинопоиск</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        background: linear-gradient(to right, #5d34ff, #b31021);
+    }
+</style>
 </head>
 <body>
-$END$
+<div class="h-screen w-4/5 mx-auto">
+    <header class="my-10 flex items-center	">
+      <img src="{{ url_for('static', filename='/img.png') }}" alt="" class="h-52">
+        <form action="{{ url_for('submit') }}" method="POST" class="ml-40">
+          <input type="text" name="movie" class="h-24 bg-red-700 text-white rounded-xl w-3/5 text-5xl mr-10" style="width: 600px">
+          <button class="h-16 p-5 bg-slate-800 text-white rounded-xl" type="submit">Подтвердить</button>
+        </form>
+    </header>
+
+      {% if movie_by_title %}
+      <main class="flex items-center justify-center">
+    <div class="grid grid-cols-2 gap-10 w-4/5 p-10">
+        <div class="flex flex-col items-center">
+            <img src="{{ movie_by_title.poster_url }}" alt="{{ movie_by_title.title }}" class="w-full h-80 object-cover rounded-md bg-gray-200">
+            <button class="mt-6 bg-purple-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-purple-800 transition">
+                Поставить оценку
+            </button>
+        </div>
+
+        <div class="flex flex-col justify-between text-white">
+            <div>
+                <h3 class="text-3xl font-bold mb-4">{{ movie_by_title.title }}</h3>
+                <p class="text-lg mb-4">{{ movie_by_title.sinopsis }}</p>
+                <p class="text-lg mb-2">Дата выхода: <span class="font-semibold">{{ movie_by_title.release_date }}</span></p>
+                <p class="text-lg">Рейтинг (IMDb): <span class="font-semibold">{{ movie_by_title.rating }}</span></p>
+            </div>
+            <div class="flex items-end mt-6">
+                <input
+                    id="ratingInput"
+                    type="number"
+                    min="0"
+                    max="10"
+                    placeholder="0"
+                    class="w-16 text-center bg-white text-black border border-gray-300 rounded-lg mr-4 py-1 px-2"
+                />
+                <span class="text-xl">/ 10</span>
+                <img src="{{ url_for('static', filename='star_yellow.png') if is_favourite else url_for('static', filename='star.png') }} "
+                     alt=""
+                     class="h-28 ml-10 cursor-pointer"
+                     id="star"
+                     onclick="toggleStarColor()">
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    function toggleStarColor() {
+        const star = document.getElementById("star");
+        const whiteStarSrc = "{{ url_for('static', filename='star.png') }}";
+        const yellowStarSrc = "{{ url_for('static', filename='star_yellow.png') }}";
+
+        const currentSrc = star.src;
+        const whiteStarAbsoluteSrc = new URL(whiteStarSrc, window.location.origin).href;
+        const yellowStarAbsoluteSrc = new URL(yellowStarSrc, window.location.origin).href;
+
+        const movie = {{movie_by_title|tojson}};
+        console.log(movie);
+
+        if (star.src === whiteStarAbsoluteSrc) {
+            const rating = document.getElementById('ratingInput').value;
+            console.log(rating)
+            if (!rating || rating < 0 || rating > 10) {
+                alert('Введите число от 0 до 10');
+                return;
+            }
+
+            const movieData = {
+                title: movie.title,
+                year: movie.release_date,
+                description: movie.sinopsis,
+                poster: movie.poster_url,
+                rating: rating
+            };
+            console.log('add', movieData)
+            fetch('/favourites', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(movieData),
+            })
+            .then(response => {
+                console.log(response)
+                if (response.ok) {
+                    alert("Фильм добавлен в список избранных");
+                    star.src = yellowStarAbsoluteSrc;
+                } else {
+                    alert("Ошибка в добавление фильма");
+                }
+            })
+        } else {
+            const movieData = {
+                title: movie.title
+            };
+
+            fetch('/remove_favourite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(movieData),
+            })
+            .then(response => {
+                console.log(response)
+                if (response.ok) {
+                    alert(`Фильм "${movie.title}" удалён из списка избранных.`);
+                    star.src = whiteStarAbsoluteSrc;
+                    location.reload();
+                } else {
+                    alert("Ошибка при удалении фильма.");
+                }
+            })
+        }
+    }
+</script>
+
+  {% endif %}
+</div>
+
 </body>
 </html>

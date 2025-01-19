@@ -1,10 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Кинопоиск</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        background: linear-gradient(to right, #5d34ff, #b31021);
+    }
+</style>
 </head>
+
 <body>
-$END$
+  <div class="h-screen w-4/5 mx-auto">
+    <header class="my-10 flex items-center	">
+      <img src="{{ url_for('static', filename='/img.png') }}" alt="" class="h-52">
+        <form action="{{ url_for('submit') }}" method="POST" class="ml-40">
+          <input type="text" name="movie" class="h-24 bg-red-700 text-white rounded-xl w-3/5 text-5xl mr-10" style="width: 600px">
+          <button class="h-16 p-5 bg-slate-800 text-white rounded-xl" type="submit">Подтвердить</button>
+        </form>
+    </header>
+
+     {% if movies %}
+        <main class="p-6 bg-gray-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for movie in movies %}
+                  <a href="{{ url_for('get_movie_by_id', title=movie.title) }}">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-64 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-800">{{ movie.title }}</h3>
+                            <p class="text-sm text-gray-600 mt-2">Рейтинг: <span class="font-medium">{{ movie.rating }}</span></p>
+                            <p class="text-sm text-gray-600 mt-2">Год выпуска: <span class="font-medium">{{ movie.release_date }}</span></p>
+                            <p class="text-sm text-gray-700 mt-4">{{ movie.sinopsis }}</p>
+                        </div>
+                    </div>
+                  </a>
+                {% endfor %}
+            </div>
+        </main>
+    {% endif %}
+
+  </div>
+
 </body>
 </html>
